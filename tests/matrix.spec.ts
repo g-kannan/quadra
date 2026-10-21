@@ -402,7 +402,7 @@ test("compact desktop matrix fits on screen and quick actions work on a narrow p
 }) => {
   await page.setViewportSize({ width: 1440, height: 900 });
   const board = await page.locator(".matrix-grid").boundingBox();
-  expect(board!.y + board!.height).toBeLessThan(840);
+  expect(board!.y + board!.height).toBeLessThan(760);
   await page.setViewportSize({ width: 320, height: 740 });
   expect(
     await page.evaluate(

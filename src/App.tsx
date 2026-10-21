@@ -714,13 +714,34 @@ export default function App() {
       </aside>
       <div className="main-shell">
         <header className="topbar">
-          <div className="breadcrumb">
-            <LayoutGrid size={16} />
-            <span>Workspace</span>
-            <span className="breadcrumb-slash">/</span>
-            <strong>{viewLabels[view]}</strong>
+          <div className="topbar-heading">
+            <div className="eyebrow">
+              <Sun size={15} />
+              {date}
+            </div>
+            <h1>
+              {view === "matrix"
+                ? "Make time for what matters."
+                : view === "all"
+                  ? "A little clarity. All in one place."
+                  : "Look at you, making progress."}
+            </h1>
+            <p>
+              {view === "matrix"
+                ? "A clear mind starts with a little perspective. Find yours below."
+                : view === "all"
+                  ? "Everything on your mind, with a place and a purpose."
+                  : "Every small step counts. Here’s what you’ve made room for."}
+            </p>
           </div>
           <div className="topbar-right">
+            <button
+              className="button primary add-task-button"
+              onClick={() => newTask()}
+            >
+              <Plus size={18} />
+              Add task<span className="key-hint">N</span>
+            </button>
             <div
               className="space-switch"
               role="group"
@@ -771,35 +792,6 @@ export default function App() {
               <button onClick={exportBackup}>Export backup</button>
             </div>
           )}
-          <section className="page-heading">
-            <div>
-              <div className="eyebrow">
-                <Sun size={15} />
-                {date}
-              </div>
-              <h1>
-                {view === "matrix"
-                  ? "Make time for what matters."
-                  : view === "all"
-                    ? "A little clarity. All in one place."
-                    : "Look at you, making progress."}
-              </h1>
-              <p>
-                {view === "matrix"
-                  ? "A clear mind starts with a little perspective. Find yours below."
-                  : view === "all"
-                    ? "Everything on your mind, with a place and a purpose."
-                    : "Every small step counts. Here’s what you’ve made room for."}
-              </p>
-            </div>
-            <button
-              className="button primary add-task-button"
-              onClick={() => newTask()}
-            >
-              <Plus size={18} />
-              Add task<span className="key-hint">N</span>
-            </button>
-          </section>
           <section className="summary-bar" aria-label="Workspace summary">
             <div className="summary-context">
               <span className="context-icon">
