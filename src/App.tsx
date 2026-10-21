@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import {
+  ArrowDown,
   ArrowDownUp,
+  ArrowUp,
   ArrowRight,
   ArrowUpRight,
   BriefcaseBusiness,
@@ -293,9 +295,32 @@ function TaskCard({
       document.removeEventListener("keydown", escape);
     };
   }, [menu]);
+  const priorityIndex = quadrants.findIndex((q) => q.id === task.quadrant);
+  const higherPriority = quadrants[priorityIndex - 1];
+  const lowerPriority = quadrants[priorityIndex + 1];
+  function changePriority(direction: "promote" | "lower") {
+    const destination =
+      direction === "promote" ? higherPriority : lowerPriority;
+    if (!destination || task.completed) return;
+    setMenu(false);
+    move(task, destination.id);
+    // A move remounts the card in another quadrant. Keep keyboard focus on it.
+    requestAnimationFrame(() => {
+      const card = document.getElementById(`task-${task.id}`);
+      const button = card?.querySelector<HTMLButtonElement>(
+        `[data-priority-direction="${direction}"]`,
+      );
+      if (button && !button.disabled) button.focus({ preventScroll: true });
+      else
+        card
+          ?.querySelector<HTMLButtonElement>(".task-menu-trigger")
+          ?.focus({ preventScroll: true });
+    });
+  }
   const isOverdue = task.due && task.due < dateOffset() && !task.completed;
   return (
     <article
+      id={`task-${task.id}`}
       className={`task-card ${task.completed ? "is-completed" : ""} ${dragging === task.id ? "dragging" : ""}`}
       draggable={!task.completed}
       onDragStart={(event) => {
@@ -322,6 +347,49 @@ function TaskCard({
           {task.title}
         </button>
         <div className="task-actions" ref={menuRef}>
+          {!task.completed && (
+            <>
+              <button
+                className="icon-button task-quick-action"
+                data-priority-direction="promote"
+                aria-label={`Promote ${task.title}${higherPriority ? ` to ${higherPriority.title}` : ""}`}
+                title={
+                  higherPriority
+                    ? `Promote to ${higherPriority.title}`
+                    : "Already in Do first"
+                }
+                disabled={!higherPriority}
+                onClick={() => changePriority("promote")}
+              >
+                <ArrowUp size={15} />
+              </button>
+              <button
+                className="icon-button task-quick-action"
+                data-priority-direction="lower"
+                aria-label={`Lower ${task.title}${lowerPriority ? ` to ${lowerPriority.title}` : ""}`}
+                title={
+                  lowerPriority
+                    ? `Lower to ${lowerPriority.title}`
+                    : "Already in Let go"
+                }
+                disabled={!lowerPriority}
+                onClick={() => changePriority("lower")}
+              >
+                <ArrowDown size={15} />
+              </button>
+            </>
+          )}
+          <button
+            className="icon-button task-quick-action task-delete"
+            aria-label={`Delete ${task.title}`}
+            title="Delete task (undo available)"
+            onClick={() => {
+              setMenu(false);
+              remove(task);
+            }}
+          >
+            <Trash2 size={14} />
+          </button>
           <button
             className={`icon-button task-menu-trigger ${menu ? "is-open" : ""}`}
             aria-label={`Options for ${task.title}`}
@@ -922,7 +990,7 @@ export default function App() {
               <div className="board-footnote">
                 <span>
                   <GripVertical size={14} />
-                  Drag tasks between quadrants as priorities change.
+                  Use ↑ / ↓ to change priority, or drag between quadrants.
                 </span>
                 <button onClick={() => setHelp(true)}>
                   How the matrix works
@@ -1061,7 +1129,9 @@ export default function App() {
           <div className="help-tip">
             <MoveRight size={18} />
             <p>
-              Drag a task to move it, or open its <strong>•••</strong> menu.
+              Use a task’s <strong>↑ / ↓</strong> buttons to promote or lower it
+              through Do first → Schedule → Delegate → Let go. You can also drag
+              it or choose any quadrant from its <strong>•••</strong> menu.
               Click a task’s name to edit. Personal and Work each have their own
               matrix.
             </p>

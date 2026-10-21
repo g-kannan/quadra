@@ -2,7 +2,8 @@
 
 Time management, made simple and private. A responsive Eisenhower matrix for your personal life and work.
 
-- Move tasks between **Do first**, **Schedule**, **Delegate**, and **Let go** by dragging or using a task’s **•••** menu.
+- Move tasks between **Do first**, **Schedule**, **Delegate**, and **Let go** with the visible **↑ / ↓** buttons, by dragging, or through the **•••** menu. Promote moves one step toward Do first; lower moves one step toward Let go. Arrows stop at either end.
+- Delete directly from a task’s trash button; **Undo** restores it. The compact layout keeps more of the matrix in view.
 - Keep separate **Personal** and **Work** spaces. Change a task’s space in its editor.
 - Add tasks with notes and optional due dates; search titles and notes or sort by date/name.
 - Complete tasks, review completed tasks, reopen them, and undo completion or deletion.

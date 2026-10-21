@@ -306,3 +306,128 @@ test("board, dialogs, and mobile pass automated accessibility checks", async ({
   ).toBeVisible();
   await check();
 });
+
+test("visible arrows move between every priority level, stop at the ends, and preserve task details", async ({
+  page,
+}) => {
+  const title = "Renew car insurance";
+  const card = () =>
+    page
+      .locator("article")
+      .filter({ has: page.getByRole("button", { name: title, exact: true }) });
+  await expect(
+    card().getByRole("button", { name: `Promote ${title}`, exact: true }),
+  ).toBeDisabled();
+  for (const destination of ["Schedule", "Delegate", "Let go"]) {
+    const button = card().getByRole("button", {
+      name: `Lower ${title} to ${destination}`,
+      exact: true,
+    });
+    await expect(button).toBeVisible();
+    await button.click();
+    await expect(
+      page
+        .getByRole("region", { name: destination, exact: true })
+        .getByRole("button", { name: title, exact: true }),
+    ).toBeVisible();
+    // Moving between regions remounts the card; focus stays with its controls.
+    await expect(card().locator(":focus")).toHaveCount(1);
+  }
+  await expect(
+    card().getByRole("button", { name: `Lower ${title}`, exact: true }),
+  ).toBeDisabled();
+  await page.reload();
+  await expect(
+    page
+      .getByRole("region", { name: "Let go", exact: true })
+      .getByRole("button", { name: title, exact: true }),
+  ).toBeVisible();
+  await expect(card().getByText("Tomorrow")).toBeVisible();
+  for (const destination of ["Delegate", "Schedule", "Do first"]) {
+    await card()
+      .getByRole("button", {
+        name: `Promote ${title} to ${destination}`,
+        exact: true,
+      })
+      .click();
+    await expect(
+      page
+        .getByRole("region", { name: destination, exact: true })
+        .getByRole("button", { name: title, exact: true }),
+    ).toBeVisible();
+  }
+  await expect(
+    card().getByRole("button", { name: `Promote ${title}`, exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "Work", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: title, exact: true }),
+  ).toHaveCount(0);
+});
+
+test("trash deletes directly in matrix and completed views, with undo", async ({
+  page,
+}) => {
+  const title = "Read 20 pages";
+  const task = () => page.getByRole("button", { name: title, exact: true });
+  await page
+    .getByRole("button", { name: `Delete ${title}`, exact: true })
+    .click();
+  await expect(task()).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(task()).toBeVisible();
+  await page
+    .getByRole("button", { name: `Complete ${title}`, exact: true })
+    .click();
+  await page.getByRole("button", { name: /^Completed/ }).click();
+  await expect(task()).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: new RegExp(`^Promote ${title}`) }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: `Delete ${title}`, exact: true })
+    .click();
+  await expect(task()).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: `Reopen ${title}`, exact: true }),
+  ).toBeVisible();
+  await page.reload();
+  await page.getByRole("button", { name: /^Completed/ }).click();
+  await expect(task()).toBeVisible();
+});
+
+test("compact desktop matrix fits on screen and quick actions work on a narrow phone", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  const board = await page.locator(".matrix-grid").boundingBox();
+  expect(board!.y + board!.height).toBeLessThan(840);
+  await page.setViewportSize({ width: 320, height: 740 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= window.innerWidth,
+    ),
+  ).toBe(true);
+  const title = "Book your annual checkup";
+  await page
+    .getByRole("button", { name: `Lower ${title} to Schedule`, exact: true })
+    .click();
+  await expect(
+    page
+      .getByRole("region", { name: "Schedule", exact: true })
+      .getByRole("button", { name: title, exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: `Delete ${title}`, exact: true })
+    .click();
+  await expect(
+    page.getByRole("button", { name: title, exact: true }),
+  ).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(
+    page
+      .getByRole("region", { name: "Schedule", exact: true })
+      .getByRole("button", { name: title, exact: true }),
+  ).toBeVisible();
+});
