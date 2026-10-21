@@ -4,7 +4,9 @@ Time management, made simple and private. A responsive Eisenhower matrix for you
 
 - Move tasks between **Do first**, **Schedule**, **Delegate**, and **Let go** with the visible **↑ / ↓** buttons, by dragging, or through the **•••** menu. Promote moves one step toward Do first; lower moves one step toward Let go. Arrows stop at either end.
 - Delete directly from a task’s trash button; **Undo** restores it. The compact layout keeps more of the matrix in view.
-- Keep separate **Personal** and **Work** spaces. Change a task’s space in its editor.
+- Keep separate **Personal** and **Work** spaces. **Work** opens by default, including after reloading. Change a task’s space in its editor.
+- Open **Calendar** for a month view of active tasks by due date. Pick a day to see its agenda, then add or edit tasks there. Calendar creation fills the selected date and starts in Schedule. Use the arrows to change months or Today to return to the current day. Tasks without dates appear below the calendar; edit one to schedule it. On phones, date counts and colored dots summarize the month, with full tasks in the day agenda.
+- Navigate calendar days with arrow keys; Home/End jump to the start/end of the week and Page Up/Down change months. The calendar shares the matrix’s tasks, local storage, completion, search, and Personal/Work separation.
 - Add tasks with notes and optional due dates; search titles and notes or sort by date/name.
 - Complete tasks, review completed tasks, reopen them, and undo completion or deletion.
 - Export and restore both spaces from **Workspace settings** (the profile icon). Restoring asks before replacing existing tasks.

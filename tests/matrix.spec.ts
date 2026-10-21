@@ -21,6 +21,7 @@ async function addTask(
 
 test.beforeEach(async ({ page }) => {
   await page.goto("/");
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
 });
 
 test("create, edit, move, persist, complete, undo, and delete a task", async ({
@@ -59,6 +60,7 @@ test("create, edit, move, persist, complete, undo, and delete a task", async ({
       .getByRole("button", { name: "Write a thoughtful plan", exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Write a thoughtful plan", exact: true }),
   ).toBeVisible();
@@ -132,6 +134,7 @@ test("personal and work stay separate, including creation and reassignment", asy
     page.getByRole("button", { name: "Private garden plans", exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await page.getByRole("button", { name: "Work", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Team roadmap", exact: true }),
@@ -155,6 +158,7 @@ test("drag and drop moves the task between quadrants", async ({ page }) => {
       .getByRole("button", { name: "Renew car insurance", exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await expect(
     page
       .getByRole("region", { name: "Schedule", exact: true })
@@ -223,6 +227,7 @@ test("backup export, invalid import, confirmation, and restoration", async ({
     page.getByRole("button", { name: "Keep this task", exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "Keep this task", exact: true }),
   ).toBeVisible();
@@ -272,6 +277,7 @@ test("storage failure is visible and exporting remains available", async ({
     };
   });
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await addTask(page, "Unsaved task");
   await expect(page.getByRole("alert")).toContainText("only in memory");
   await expect(
@@ -337,6 +343,7 @@ test("visible arrows move between every priority level, stop at the ends, and pr
     card().getByRole("button", { name: `Lower ${title}`, exact: true }),
   ).toBeDisabled();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await expect(
     page
       .getByRole("region", { name: "Let go", exact: true })
@@ -393,6 +400,7 @@ test("trash deletes directly in matrix and completed views, with undo", async ({
     page.getByRole("button", { name: `Reopen ${title}`, exact: true }),
   ).toBeVisible();
   await page.reload();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await page.getByRole("button", { name: /^Completed/ }).click();
   await expect(task()).toBeVisible();
 });

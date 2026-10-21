@@ -1,6 +1,6 @@
 export type Space = "personal" | "work";
 export type Quadrant = "do" | "schedule" | "delegate" | "eliminate";
-export type View = "matrix" | "all" | "completed";
+export type View = "matrix" | "calendar" | "all" | "completed";
 export interface Task {
   id: string;
   title: string;

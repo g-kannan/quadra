@@ -43,8 +43,9 @@ import {
   STORAGE_KEY,
 } from "./model";
 import type { Quadrant, Space, Task, View } from "./model";
+import CalendarView from "./CalendarView";
 
-type Editor = { task?: Task; quadrant: Quadrant };
+type Editor = { task?: Task; quadrant: Quadrant; due?: string };
 type Toast = { message: string; undo?: () => void };
 const quadrantIcons = {
   do: Zap,
@@ -54,6 +55,7 @@ const quadrantIcons = {
 };
 const viewLabels = {
   matrix: "My matrix",
+  calendar: "Calendar",
   all: "All tasks",
   completed: "Completed",
 };
@@ -129,7 +131,7 @@ function TaskEditor({
   const task = editor.task;
   const [title, setTitle] = useState(task?.title ?? "");
   const [notes, setNotes] = useState(task?.notes ?? "");
-  const [due, setDue] = useState(task?.due ?? "");
+  const [due, setDue] = useState(task?.due ?? editor.due ?? "");
   const [quadrant, setQuadrant] = useState<Quadrant>(
     task?.quadrant ?? editor.quadrant,
   );
@@ -473,8 +475,9 @@ export default function App() {
   const [tasks, setTasks] = useState<Task[]>(initial.tasks);
   const tasksRef = useRef(tasks);
   const [saveError, setSaveError] = useState(initial.error);
-  const [space, setSpace] = useState<Space>("personal");
+  const [space, setSpace] = useState<Space>("work");
   const [view, setView] = useState<View>("matrix");
+  const [calendarDate, setCalendarDate] = useState(dateOffset);
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("manual");
   const [editor, setEditor] = useState<Editor | null>(null);
@@ -538,8 +541,14 @@ export default function App() {
   function update(task: Task) {
     persist(tasks.map((t) => (t.id === task.id ? task : t)));
   }
-  function newTask(quadrant: Quadrant = "do") {
-    setEditor({ quadrant });
+  function newTask(
+    quadrant: Quadrant = view === "calendar" ? "schedule" : "do",
+    due?: string,
+  ) {
+    setEditor({
+      quadrant,
+      due: due ?? (view === "calendar" ? calendarDate : undefined),
+    });
   }
   function notify(message: string, undo?: () => void) {
     setToast({ message, undo });
@@ -588,7 +597,7 @@ export default function App() {
     function shortcuts(event: KeyboardEvent) {
       const target = event.target as HTMLElement;
       if (
-        target.closest("input, textarea, select, button, [contenteditable]") ||
+        target.closest("input, textarea, select, [contenteditable]") ||
         event.metaKey ||
         event.ctrlKey ||
         event.altKey ||
@@ -608,7 +617,7 @@ export default function App() {
     }
     document.addEventListener("keydown", shortcuts);
     return () => document.removeEventListener("keydown", shortcuts);
-  }, [editor, settings, help]);
+  }, [editor, settings, help, view, calendarDate]);
   function exportBackup() {
     const url = URL.createObjectURL(
       new Blob([serialize(tasks)], { type: "application/json" }),
@@ -660,6 +669,7 @@ export default function App() {
           {(
             [
               { id: "matrix", icon: LayoutGrid },
+              { id: "calendar", icon: CalendarDays },
               { id: "all", icon: ListTodo },
               { id: "completed", icon: CircleCheck },
             ] as const
@@ -671,13 +681,17 @@ export default function App() {
                 setView(item.id);
                 setQuery("");
               }}
-              aria-label={`${viewLabels[item.id]} (${item.id === "completed" ? completed.length : active.length})`}
+              aria-label={`${viewLabels[item.id]} (${item.id === "completed" ? completed.length : item.id === "calendar" ? active.filter((task) => task.due).length : active.length})`}
               aria-current={view === item.id ? "page" : undefined}
             >
               <item.icon size={18} />
               <span>{viewLabels[item.id]}</span>
               <span className="nav-count">
-                {item.id === "completed" ? completed.length : active.length}
+                {item.id === "completed"
+                  ? completed.length
+                  : item.id === "calendar"
+                    ? active.filter((task) => task.due).length
+                    : active.length}
               </span>
             </button>
           ))}
@@ -722,16 +736,20 @@ export default function App() {
             <h1>
               {view === "matrix"
                 ? "Make time for what matters."
-                : view === "all"
-                  ? "A little clarity. All in one place."
-                  : "Look at you, making progress."}
+                : view === "calendar"
+                  ? "Make room in your calendar."
+                  : view === "all"
+                    ? "A little clarity. All in one place."
+                    : "Look at you, making progress."}
             </h1>
             <p>
               {view === "matrix"
                 ? "A clear mind starts with a little perspective. Find yours below."
-                : view === "all"
-                  ? "Everything on your mind, with a place and a purpose."
-                  : "Every small step counts. Here’s what you’ve made room for."}
+                : view === "calendar"
+                  ? "See what’s coming. Make a little space for what matters."
+                  : view === "all"
+                    ? "Everything on your mind, with a place and a purpose."
+                    : "Every small step counts. Here’s what you’ve made room for."}
             </p>
           </div>
           <div className="topbar-right">
@@ -836,14 +854,18 @@ export default function App() {
               <h2>
                 {view === "matrix"
                   ? "Your time matrix"
-                  : view === "all"
-                    ? "Your tasks"
-                    : "Completed tasks"}
+                  : view === "calendar"
+                    ? "Your calendar"
+                    : view === "all"
+                      ? "Your tasks"
+                      : "Completed tasks"}
               </h2>
               <span>
                 {view === "matrix"
                   ? "Four quadrants. One clearer day."
-                  : `${visible.length} ${visible.length === 1 ? "task" : "tasks"}${query ? " found" : ""}`}
+                  : view === "calendar"
+                    ? "A little perspective on your month."
+                    : `${visible.length} ${visible.length === 1 ? "task" : "tasks"}${query ? " found" : ""}`}
               </span>
             </div>
             <div className="toolbar-actions">
@@ -990,6 +1012,23 @@ export default function App() {
                 </button>
               </div>
             </>
+          ) : view === "calendar" ? (
+            <CalendarView
+              tasks={visible}
+              selectedDate={calendarDate}
+              selectDate={setCalendarDate}
+              edit={cardProps.edit}
+              add={(due) => newTask("schedule", due)}
+              query={query}
+              renderTask={(task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  {...cardProps}
+                  showQuadrant
+                />
+              )}
+            />
           ) : (
             <div className="task-list">
               {visible.map((task) => (
@@ -1077,6 +1116,7 @@ export default function App() {
               notify(`Task saved in your ${task.space} space.`);
             else {
               setQuery("");
+              if (view === "calendar" && task.due) setCalendarDate(task.due);
               if (view === "completed" && !task.completed) setView("matrix");
               notify(
                 exists
